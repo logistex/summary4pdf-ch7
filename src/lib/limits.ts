@@ -8,6 +8,6 @@ export const MAX_INPUT_CHARS = 120_000;
 export const PRIMARY_MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 export const FALLBACK_MODEL = 'nvidia/nemotron-3.5-super-vl:free';
 
-// Task 4에서 Vercel 함수 시간 한도를 확인한 뒤 조정한다
-export const PRIMARY_TIMEOUT_MS = 25_000;
-export const FALLBACK_TIMEOUT_MS = 28_000;
+// Vercel Hobby 최대 실행 시간 300초(2026-11-25 확인) → maxDuration 120초에 맞춰 1·2차 모델 시간을 잡는다
+export const PRIMARY_TIMEOUT_MS = 50_000;
+export const FALLBACK_TIMEOUT_MS = 55_000;
