@@ -1,4 +1,5 @@
 // OpenRouter(OpenAI 호환) 채팅 API를 한 번 호출한다. 서버에서만 쓴다.
+import 'server-only';
 import type { ChatMessage } from './prompt';
 
 export type CallModel = (args: {

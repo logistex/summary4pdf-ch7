@@ -1,4 +1,6 @@
 // 1차 모델 → 실패하면 2차 모델 순서로 요약한다. 문서·응답·키는 로그에 남기지 않는다.
+// 키를 다루므로 서버에서만 불러올 수 있다(브라우저 번들에 들어가면 빌드 오류).
+import 'server-only';
 import { AppError } from '../errors';
 import {
   FALLBACK_MODEL,

@@ -32,4 +32,6 @@ export const UI_TEXT = {
   headingOneLine: '한 줄 요약',
   headingConcepts: '핵심 개념',
   headingDefinitions: '정의·공식',
+  errorBoundaryMessage: '문제가 생겼어요. 페이지를 새로고침해 주세요.',
+  errorBoundaryRetry: '다시 시도',
 } as const;
