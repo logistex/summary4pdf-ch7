@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { requestSummary } from '@/lib/client/api';
 import { precheckFiles } from '@/lib/client/precheck';
 import { errorMessage, UI_TEXT } from '@/lib/messages';
@@ -18,6 +18,17 @@ export function SummaryApp() {
   const [state, setState] = useState<ViewState>({ status: 'idle' });
   // 상태 갱신 전에 연달아 들어오는 요청도 막기 위한 잠금
   const busy = useRef(false);
+
+  // 상자 밖에 파일을 놓으면 브라우저가 그 파일을 열어 앱 화면이 사라지므로 기본 동작을 막는다
+  useEffect(() => {
+    const prevent = (e: Event) => e.preventDefault();
+    window.addEventListener('dragover', prevent);
+    window.addEventListener('drop', prevent);
+    return () => {
+      window.removeEventListener('dragover', prevent);
+      window.removeEventListener('drop', prevent);
+    };
+  }, []);
 
   async function handleFiles(files: File[]) {
     if (busy.current || files.length === 0) return;

@@ -136,4 +136,57 @@ describe('SummaryApp', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     expect(await screen.findByText('이 문서는 선형대수의 기초를 다룬다')).toBeTruthy();
   });
+
+  it('긴 영어 토큰이 들어도 한 줄 요약·개념·정의 용어에 줄바꿈 클래스가 있다', async () => {
+    const long = 'Newtonian_mechanics_and_its_applications_in_engineering';
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        ok: true,
+        fileName: 'lecture.pdf',
+        result: {
+          oneLine: long,
+          concepts: [{ name: `${long}_name`, description: `${long}_desc` }],
+          definitions: [{ term: `${long}_term`, content: 'x' }],
+          truncated: false,
+        },
+      }),
+    );
+    render(<SummaryApp />);
+    dropOn([pdf()]);
+    for (const text of [long, `${long}_name`, `${long}_desc`, `${long}_term`]) {
+      const el = await screen.findByText(text);
+      expect(el.className).toContain('wrap-anywhere');
+    }
+  });
+
+  it('상자 밖에 파일을 놓거나 끌어도 기본 동작(파일 열기)이 막히고 fetch는 호출되지 않는다', () => {
+    render(<SummaryApp />);
+    for (const type of ['dragover', 'drop']) {
+      const ev = new Event(type, { bubbles: true, cancelable: true });
+      document.body.dispatchEvent(ev);
+      expect(ev.defaultPrevented).toBe(true);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('결과 화면에서도 상자 밖 드롭의 기본 동작이 막힌다', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(okResponse()));
+    render(<SummaryApp />);
+    dropOn([pdf()]);
+    await screen.findByText('이 문서는 선형대수의 기초를 다룬다');
+    for (const type of ['dragover', 'drop']) {
+      const ev = new Event(type, { bubbles: true, cancelable: true });
+      document.body.dispatchEvent(ev);
+      expect(ev.defaultPrevented).toBe(true);
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('언마운트하면 window 드롭 방지 리스너가 정리된다', () => {
+    const { unmount } = render(<SummaryApp />);
+    unmount();
+    const ev = new Event('drop', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(false);
+  });
 });

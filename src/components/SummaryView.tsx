@@ -23,7 +23,7 @@ export function SummaryView({ fileName, result }: SummaryViewProps) {
         <h2 id="h-one-line" className="mb-2 text-sm font-semibold text-indigo-700">
           {UI_TEXT.headingOneLine}
         </h2>
-        <p className="rounded-2xl bg-indigo-50 p-5 text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">
+        <p className="wrap-anywhere rounded-2xl bg-indigo-50 p-5 text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">
           {result.oneLine}
         </p>
       </section>
@@ -35,8 +35,8 @@ export function SummaryView({ fileName, result }: SummaryViewProps) {
         <ul className="space-y-3">
           {result.concepts.map((c, i) => (
             <li key={`${c.name}-${i}`} className="rounded-xl border border-slate-200 p-4">
-              <p className="font-bold text-slate-900">{c.name}</p>
-              <p className="mt-1 text-slate-700">{c.description}</p>
+              <p className="wrap-anywhere font-bold text-slate-900">{c.name}</p>
+              <p className="wrap-anywhere mt-1 text-slate-700">{c.description}</p>
             </li>
           ))}
         </ul>
@@ -52,7 +52,7 @@ export function SummaryView({ fileName, result }: SummaryViewProps) {
           <dl className="space-y-3">
             {result.definitions.map((d, i) => (
               <div key={`${d.term}-${i}`} className="rounded-xl bg-slate-50 p-4">
-                <dt className="font-bold text-slate-900">{d.term}</dt>
+                <dt className="wrap-anywhere font-bold text-slate-900">{d.term}</dt>
                 <dd className="mt-1 whitespace-pre-wrap break-words text-slate-700">{d.content}</dd>
               </div>
             ))}
