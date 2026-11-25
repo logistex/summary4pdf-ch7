@@ -164,6 +164,33 @@ async function padToSize(blocks, targetBytes) {
   return bytes;
 }
 
+// 긴 영어 논문: 본문 글자 수가 모델 입력 상한(120,000자)을 넘도록 만든다 (시간 예산 측정용)
+const LONG_TARGET_CHARS = 130_000;
+function longPaperBlocks() {
+  // 결과가 매번 같도록 간단한 의사 난수(LCG)를 쓴다
+  let seed = 20261125;
+  const rnd = (n) => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed % n;
+  };
+  const subjects = ["The collision model", "Our measurement protocol", "The numerical scheme", "A careful calibration", "The second experiment", "This derivation", "The observed trend", "The control group"];
+  const verbs = ["confirms", "refines", "contradicts", "extends", "stabilizes", "approximates", "explains", "constrains"];
+  const objects = ["the conservation of momentum", "the expected energy transfer", "the boundary conditions of the track", "the variance of the sensor readings", "the dependence on the mass ratio", "the damping observed in later trials", "the linear regime of the response", "the assumption of negligible friction"];
+  const tails = ["within the stated tolerance", "under repeated trials", "for every tested configuration", "as predicted by the first-order theory", "once the drift is corrected", "across all twenty runs", "in agreement with earlier reports", "at the highest sampling rate"];
+  const sentence = () => `${subjects[rnd(8)]} ${verbs[rnd(8)]} ${objects[rnd(8)]} ${tails[rnd(8)]}.`;
+  const blocks = [{ text: "Momentum Conservation in Elastic Collisions: An Extended Study", size: 18, gap: 10 }];
+  let chars = 0;
+  for (let sec = 1; chars < LONG_TARGET_CHARS; sec++) {
+    blocks.push(H(`${sec}. Section ${sec}`));
+    for (let para = 0; para < 6 && chars < LONG_TARGET_CHARS; para++) {
+      const text = Array.from({ length: 6 }, sentence).join(" ");
+      blocks.push(P(text));
+      chars += text.length;
+    }
+  }
+  return blocks;
+}
+
 const results = [];
 async function emit(name, data, pages) {
   const bytes = Buffer.from(data);
@@ -217,6 +244,12 @@ await emit(
   Buffer.concat([Buffer.from("%PDF-1.7\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R\n"), randomBytes(512)]),
   0,
 );
+
+// 9) 12만 자 이상 영어 본문의 긴 논문 (4MB 이하)
+{
+  const pdf = await textPdf(longPaperBlocks());
+  await emit("long-paper.pdf", await pdf.save(), pdf.getPageCount());
+}
 
 // 요약 표
 console.log("\n" + "파일".padEnd(18) + "바이트".padStart(12) + "  쪽수");
