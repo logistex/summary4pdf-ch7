@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* 흰 배경 고정(다크 모드 없음), 외부 폰트 다운로드 없이 한글 시스템 글꼴 사용 */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
