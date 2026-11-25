@@ -49,4 +49,34 @@ describe('parseSummary', () => {
     expect(parseSummary('죄송합니다')).toBeNull();
     expect(parseSummary('{깨진 json}')).toBeNull();
   });
+  describe('추론 모델 응답', () => {
+    const json = JSON.stringify(ok);
+    it('앞에 <think> 블록이 있어도 해석한다', () => {
+      expect(parseSummary('<think>먼저 {생각}을 해 보자</think>\n' + json)).toEqual(ok);
+    });
+    it('여는 태그 없이 </think>만 있으면 그 앞까지 버린다', () => {
+      expect(parseSummary('추론 중 { 열린 괄호\n</think>\n' + json)).toEqual(ok);
+    });
+    it('추론 안에 { 가 있어도 JSON 을 찾는다 (think 태그 없음)', () => {
+      expect(parseSummary('생각: 형식은 { oneLine, concepts } 이다.\n' + json)).toEqual(ok);
+    });
+    it('JSON 뒤에 다른 {} 가 붙어도 해석한다', () => {
+      expect(parseSummary(json + '\n참고: {추가 설명}')).toEqual(ok);
+    });
+    it('후보 중 검증을 통과하는 첫 후보를 뒤에서부터 고른다', () => {
+      expect(parseSummary('{"oneLine":"x"} ' + json + ' {"a":1}')).toEqual(ok);
+    });
+  });
+  it('개념 설명 과반에 한글이 없으면 null', () => {
+    const en = [1, 2, 3].map((i) => ({ name: 'c' + i, description: 'English only ' + i }));
+    expect(parseSummary(JSON.stringify({ ...ok, concepts: en }))).toBeNull();
+  });
+  it('개념 설명 과반에 한글이 있으면 통과', () => {
+    const mixed = [
+      { name: 'a', description: '한글 설명' },
+      { name: 'b', description: '또 다른 한글' },
+      { name: 'c', description: 'English only' },
+    ];
+    expect(parseSummary(JSON.stringify({ ...ok, concepts: mixed }))).not.toBeNull();
+  });
 });
