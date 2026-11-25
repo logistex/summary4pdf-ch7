@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { extractPdfText } from '@/lib/pdf/extract';
-import { makeBlankPdf, makeEncryptedLikePdf, makeTextPdf } from '../../helpers/pdf';
+import { makeBlankPdf, makeEncryptedLikePdf, makeKoreanCidPdf, makeTextPdf } from '../../helpers/pdf';
 
 describe('extractPdfText', () => {
   it('글자 있는 PDF에서 텍스트와 쪽수를 꺼낸다', async () => {
@@ -21,5 +21,18 @@ describe('extractPdfText', () => {
     const len = bytes.byteLength;
     await extractPdfText(bytes);
     expect(bytes.byteLength).toBe(len);
+  });
+});
+
+describe('extractPdfText: 비내장 CID 한국어 폰트', () => {
+  it('CMap 이 있어야 읽히는 한국어 PDF 에서 한글을 꺼낸다', async () => {
+    const lines = [
+      '광합성은 식물이 빛 에너지를 화학 에너지로 바꾸는 과정이다.',
+      '엽록체에서 일어나며 이산화탄소와 물이 포도당과 산소가 된다.',
+      '뉴턴의 제2법칙에 따르면 가속도는 알짜힘에 비례한다.',
+    ];
+    const r = await extractPdfText(makeKoreanCidPdf(lines));
+    expect(r.text).toMatch(/[가-힣]{5,}/);
+    expect(r.text).toContain('광합성');
   });
 });

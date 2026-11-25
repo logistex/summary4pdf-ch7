@@ -30,3 +30,36 @@ export function makeEncryptedLikePdf(): Uint8Array {
   out.set(garbage, header.length);
   return out;
 }
+
+/**
+ * 비내장 CID 한국어 폰트(Type0 + CIDFontType0, /UniKS-UCS2-H, FontFile 없음)를 쓰는
+ * 한 쪽짜리 PDF를 손으로 만든다. 글자를 읽으려면 pdf.js 의 CMap 파일이 필요하다.
+ */
+export function makeKoreanCidPdf(lines: string[]): Uint8Array {
+  const hex = (s: string) =>
+    Array.from(s)
+      .map((ch) => ch.charCodeAt(0).toString(16).padStart(4, '0'))
+      .join('')
+      .toUpperCase();
+  const content = lines.map((l, i) => `BT /F1 12 Tf 50 ${780 - i * 20} Td <${hex(l)}> Tj ET`).join('\n');
+  const objs = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+    '<< /Type /Font /Subtype /Type0 /BaseFont /HYSMyeongJo-Medium /Encoding /UniKS-UCS2-H /DescendantFonts [6 0 R] >>',
+    '<< /Type /Font /Subtype /CIDFontType0 /BaseFont /HYSMyeongJo-Medium /CIDSystemInfo << /Registry (Adobe) /Ordering (Korea1) /Supplement 1 >> /FontDescriptor 7 0 R /DW 1000 >>',
+    '<< /Type /FontDescriptor /FontName /HYSMyeongJo-Medium /Flags 6 /FontBBox [0 -148 1000 880] /ItalicAngle 0 /Ascent 880 /Descent -148 /CapHeight 700 /StemV 80 >>',
+  ];
+  let out = '%PDF-1.4\n';
+  const offsets: number[] = [];
+  objs.forEach((body, i) => {
+    offsets.push(out.length);
+    out += `${i + 1} 0 obj\n${body}\nendobj\n`;
+  });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
+  for (const o of offsets) out += `${String(o).padStart(10, '0')} 00000 n \n`;
+  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return new TextEncoder().encode(out);
+}
